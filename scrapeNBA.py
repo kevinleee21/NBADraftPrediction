@@ -19,11 +19,8 @@ season_years = [
 ]
 per_mode = 'PerGame'
 season_type = 'Regular Season'
-player_info_url = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=' + per_mode + '&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=' + season + '&SeasonSegment=&SeasonType=' + season_type + '&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
-player_info_url_adv = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2023-24&SeasonSegment=&SeasonType=Regular%20Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
-player_info_url_phy = 'https://stats.nba.com/stats/leaguedashplayerbiostats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&Season=2023-24&SeasonSegment=&SeasonType=Regular%20Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
 adv_player_columns = {"PLAYER_ID": "INTEGER", "PLAYER_NAME": "TEXT", "NICKNAME": "TEXT", "TEAM_ID": "TEXT",
-                      "AGE": "INTEGER", "GP": "INTEGER",
+                      "TEAM_ABBREVIATION": "TEXT","AGE": "INTEGER", "GP": "INTEGER",
                       "W": "INT", "L": "INT", "W_PCT": "FLOAT", "MIN": "FLOAT", "E_OFF_RATING": "FLOAT",
                       "OFF_RATING": "FLOAT", "sp_work_OFF_RATING": "FLOAT",
                       "E_DEF_RATING": "FLOAT", "DEF_RATING": "FLOAT", "sp_work_DEF_RATING": "FLOAT",
@@ -48,6 +45,8 @@ adv_player_columns = {"PLAYER_ID": "INTEGER", "PLAYER_NAME": "TEXT", "NICKNAME":
                       "PACE_RANK": "INTEGER", "sp_work_PACE_RANK": "INTEGER", "PIE_RANK": "INTEGER",
                       "FGM_RANK": "INTEGER", "FGA_RANK": "INTEGER", "FGM_PG_RANK": "INTEGER",
                       "FGA_PG_RANK": "INTEGER", "FG_PCT_RANK": "INTEGER"}
+
+
 physical_attr_columns = {"PLAYER_ID": "INTEGER", "PLAYER_NAME": "TEXT",
                          "TEAM_ID": "INTEGER", "TEAM_ABBREVIATION": "TEXT",
                          "AGE": "FLOAT", "PLAYER_HEIGHT": "TEXT",
@@ -63,19 +62,22 @@ physical_attr_columns = {"PLAYER_ID": "INTEGER", "PLAYER_NAME": "TEXT",
 
 
 def create_table(table_name, columns):
-    column_vals = " ".join([f'{col_name} {data_type}' for col_name, data_type in columns.items()])
+    column_vals = ", ".join([f'{col_name} {data_type}' for col_name, data_type in columns.items()])
     table_query = f"""CREATE TABLE "{table_name}" ({column_vals})"""
     return table_query
 
 
 def insert(table_name, column_names):
     column_vals = ", ".join(f'"{col_name}"' for col_name, data_type in column_names.items())
+    print(column_vals)
     placeholders = ", ".join(["?"] * len(column_names))
-    insert_data = f""" INSERT INTO {table_name} ({column_vals}) VALUES ({placeholders})"""
+    insert_data = f""" INSERT INTO "{table_name}" ({column_vals}) VALUES ({placeholders})"""
     return insert_data
 
 
-def scrape_data(url, season_type, mode_type, season_years, column_names, table_name):
+
+
+def scrape_data(url_type, season_type, mode_type, season_years, column_names, table_name):
     """
     scrape nba player data based on the specific url, season type(regular, playoff, etc), per mode stats, number of seasons,
     and insert that data into the data in the form of tables
@@ -87,8 +89,16 @@ def scrape_data(url, season_type, mode_type, season_years, column_names, table_n
     :param table_name: name of the table
     :return:
     """
+
     # iterate over each year starting from 1996 to 2024
     for season in season_years:
+        if url_type == 'adv':
+            url_val = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=' + mode_type + '&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=' + season + '&SeasonSegment=&SeasonType=' + season_type + '&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
+        elif url_type == 'regular':
+            url_val = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=' + mode_type + '&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=' + season + '&SeasonSegment=&SeasonType=' + season_type + '&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
+        elif url_type == 'physical':
+            url_val = 'https://stats.nba.com/stats/leaguedashplayerbiostats?College=&Conference=&Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PerMode=' + mode_type + '&Period=0&PlayerExperience=&PlayerPosition=&Season=' + season + '&SeasonSegment=&SeasonType=' + 'Regular' + '%20Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight='
+
         headers = {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
@@ -101,10 +111,11 @@ def scrape_data(url, season_type, mode_type, season_years, column_names, table_n
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'en-US,en;q=0.9',
         }
-        response = requests.get(url=player_info_url_adv, headers=headers).json()
+        response = requests.get(url=url_val, headers=headers).json()
         # Regular season, per game player data from the given year,
         player_info = response['resultSets'][0]['rowSet']
-        table_name_season = table_name + {season}
+        table_name_season = table_name + season
+        print(table_name_season)
         # get table name from database
         listOfTables = cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         table_exists = False
@@ -112,30 +123,42 @@ def scrape_data(url, season_type, mode_type, season_years, column_names, table_n
         table_names = [table[0] for table in listOfTables]
         # check if the table exists in the database
         table_exists = table_name_season in table_names
+        # cursor.execute(f'SELECT * FROM "{table_name_season}" LIMIT 10;')
+        #
+        # # Fetch all the results (this will return the schema information)
+        # table_info = cursor.fetchall()
+        #
+        # # Print out the table schema information
+        # for row in table_info:
+        #     print(row)
         if table_exists:
-            print(f"Table '{table_name}' exists.")
-            cursor.execute(f'SELECT COUNT(*) FROM "{table_name}"')
+            print(f"Table '{table_name_season}' exists.")
+            cursor.execute(f'SELECT COUNT(*) FROM "{table_name_season}"')
             row_count = cursor.fetchone()[0]
             if row_count == 0:
-                insert_query = insert(table_name, column_names)
+                insert_query = insert(table_name_season, column_names)
+                print(player_info, table_name_season)
                 cursor.executemany(insert_query, player_info)
                 conn.commit()
+                # if data was successfully inserted into the given table
+                print('Successfully inserted')
             elif row_count > 0:
                 continue
         else:
-            table_query = create_table(table_name, column_names)
+            table_query = create_table(table_name_season, column_names)
             cursor.execute(table_query)
-            insert_query = insert(table_name, column_names)
+            insert_query = insert(table_name_season, column_names)
             cursor.executemany(insert_query, player_info)
             conn.commit()
-        # if data was successfully inserted into the given table
-        print('Successfully inserted')
-    # close connection
+
+            # if data was successfully inserted into the given table
+            print('Successfully inserted')
+    # # close connection
     conn.close()
 
 
 if __name__ == '__main__':
     nba_adv_stats = f'NBA_Player_adv_stats_'
     nba_phy_stats = f'NBA_Player_phy_stats_'
-    scrape_data(player_info_url_adv, season_type, per_mode, season_years, adv_player_columns, nba_adv_stats)
-    scrape_data(player_info_url_phy, season_type, per_mode, season_years, physical_attr_columns, nba_phy_stats)
+    # scrape_data('adv', season_type, per_mode, season_years, adv_player_columns, nba_adv_stats)
+    scrape_data('physical', season_type, per_mode, season_years, physical_attr_columns, nba_phy_stats)
