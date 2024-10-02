@@ -160,5 +160,7 @@ def scrape_data(url_type, season_type, mode_type, season_years, column_names, ta
 if __name__ == '__main__':
     nba_adv_stats = f'NBA_Player_adv_stats_'
     nba_phy_stats = f'NBA_Player_phy_stats_'
+    nba_reg_stat = f'NBA_Player_reg_stats_'
     # scrape_data('adv', season_type, per_mode, season_years, adv_player_columns, nba_adv_stats)
-    scrape_data('physical', season_type, per_mode, season_years, physical_attr_columns, nba_phy_stats)
+    # scrape_data('physical', season_type, per_mode, season_years, physical_attr_columns, nba_phy_stats)
+    scrape_data('regular', season_type, per_mode, season_years, physical_attr_columns, nba_phy_stats)
